@@ -242,7 +242,7 @@ export default {
       this.submitForm = {
         topicName: '',
         topicType: '',
-        topicLeader: '',
+        topicLeader: [],
         introduction: '',
         surveyId: '',
         topicPeriod: [],

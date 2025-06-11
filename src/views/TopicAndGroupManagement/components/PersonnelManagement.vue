@@ -138,7 +138,6 @@ export default {
   data() {
     return {
       activeTab: 'approved',
-      // Badge数字显示
       badgeCounts: {
         approved: 0,    // 审核通过患者数量
         survey: 32,     // 待审核调查问卷数量
