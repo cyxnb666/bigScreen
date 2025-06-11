@@ -25,10 +25,18 @@ export function deleteTopic(topicId) {
     })
 }
 
-// 获取课题负责人列表
+// 获取课题负责人列表 -25/06/09弃用
 export function getTopicPrincipal() {
     return request({
         url: '/getTopicPrincipal', 
+        method: 'get'
+    })
+}
+
+// 获取课题负责人列表
+export function getTopicLeaders() {
+    return request({
+        url: '/sysUser/getAllTopicLeader', 
         method: 'get'
     })
 }

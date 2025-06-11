@@ -16,12 +16,12 @@ module.exports = defineConfig({
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, HEAD',
       'Access-Control-Allow-Headers': '*'
     },
-    port: 8082,
+    port: 8080,
     compress: true,
     proxy: {
       '/api': {
-        // target: 'http://192.168.8.52:1010/hospital_office_work',
-        target: 'https://uat.zhixunchelian.com/hospital_office_work',
+        target: 'http://192.168.8.52:1010/hospital_office_work',
+        // target: 'https://uat.zhixunchelian.com/hospital_office_work',
         ws: true,
         changeOrigin: true, // 允许跨域
         pathRewrite: {

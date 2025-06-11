@@ -31,7 +31,7 @@ const routes = [
         path: '/schedulingManagement',
         name: 'SchedulingManagement',
         meta: {
-          title: '排班管理',
+          title: '预约任务管理',
           icon: 'el-icon-date',
           menuId: 2
         },

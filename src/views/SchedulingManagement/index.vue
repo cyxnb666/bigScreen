@@ -1,12 +1,12 @@
 <template>
   <div class="SchedulingManagement">
     <el-tabs v-model="activeName" type="card" @tab-click="handleClick">
-      <el-tab-pane label="排班管理" name="1">
+      <!-- <el-tab-pane label="排班管理" name="1">
         <SchedulingView v-if="activeName === '1'" ref="SchedulingView" :type="0"/>
       </el-tab-pane>
       <el-tab-pane label="预约排班管理" name="2">
         <SchedulingView v-if="activeName === '2'" ref="SchedulingView" :type="1"/>
-      </el-tab-pane>
+      </el-tab-pane> -->
       <el-tab-pane label="预约任务管理" name="3">
         <AppointmentTask v-if="activeName === '3'" ref="AppointmentTask"/>
       </el-tab-pane>
@@ -23,7 +23,7 @@ export default {
   components: { AppointmentTask, SchedulingView },
   data () {
     return {
-      activeName: '1'
+      activeName: '3'
     }
   },
   methods: {

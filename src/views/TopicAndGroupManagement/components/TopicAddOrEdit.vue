@@ -12,7 +12,21 @@
         </el-select>
       </el-form-item>
       <el-form-item label="课题负责人" prop="topicLeader">
-        <el-input v-model="submitForm.topicLeader" placeholder="请输入课题负责人"></el-input>
+        <!-- <el-input v-model="submitForm.topicLeader" placeholder="请输入课题负责人"></el-input> -->
+        <el-select
+    v-model="submitForm.topicLeader"
+    filterable
+    multiple
+    placeholder="课题负责人"
+    style="width: 100%"
+  >
+    <el-option
+      v-for="item in topicLeaderOptions"
+      :key="item.value"
+      :label="item.label"
+      :value="item.value"
+    />
+  </el-select>
       </el-form-item>
       <el-form-item label="课题内容" prop="introduction">
         <el-input type="textarea" :autosize="{ minRows: 2, maxRows: 4 }" v-model="submitForm.introduction"
@@ -82,6 +96,10 @@ export default {
     topicTypeOptions: {
       type: Array,
       default: () => []
+    },
+    topicLeaderOptions: {
+      type: Array,
+      default: () => []
     }
   },
   data () {
@@ -93,7 +111,7 @@ export default {
       submitForm: {
         topicName: '',
         topicType: '',
-        topicLeader: '',
+        topicLeader: [],
         introduction: '',
         surveyId: '',
         topicPeriod: [],
@@ -153,7 +171,7 @@ export default {
         topicLeader: [
           {
             required: true,
-            message: '请输入课题负责人'
+            message: '请选择课题负责人'
           }
         ],
         introduction: [
