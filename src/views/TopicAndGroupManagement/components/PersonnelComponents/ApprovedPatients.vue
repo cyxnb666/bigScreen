@@ -4,8 +4,7 @@
     <div class="search-form">
       <el-form :inline="true" :model="searchForm" class="demo-form-inline">
         <el-form-item label="跟进人:">
-          <el-input v-model="searchForm.followUpPerson" placeholder="请输入跟进人" clearable
-            style="width: 200px;" />
+          <el-input v-model="searchForm.superintendentName" placeholder="请输入跟进人" clearable style="width: 200px;" />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="searchPatients">查询</el-button>
@@ -23,13 +22,13 @@
         </div>
       </div>
       <el-table :data="tableData" border style="width: 100%" height="250" v-loading="loading">
-        <el-table-column prop="patientName" label="患者名称" align="center" />
-        <el-table-column prop="followUpPerson" label="跟进人" align="center" />
-        <el-table-column prop="registrationNo" label="登记号" align="center" />
+        <el-table-column prop="customerName" label="患者名称" align="center" />
+        <el-table-column prop="superintendentName" label="跟进人" align="center" />
+        <el-table-column prop="customerNo" label="登记号" align="center" />
         <el-table-column prop="age" label="年龄" align="center" />
-        <el-table-column prop="enrollmentTime" label="入组时间" align="center" />
-        <el-table-column prop="firstFollowUpTime" label="首次随访时间" align="center" />
-        <el-table-column prop="contactInfo" label="联系方式" align="center" />
+        <el-table-column prop="signUpTime" label="入组时间" align="center" />
+        <el-table-column prop="firstVisitTime" label="首次随访时间" align="center" />
+        <el-table-column prop="phone" label="联系方式" align="center" />
         <el-table-column label="操作" align="center" width="210">
           <template slot-scope="scope">
             <el-button type="text" @click="handleDetail(scope.row)">详情</el-button>
@@ -42,9 +41,8 @@
       <!-- 分页组件 -->
       <div class="pagination-wrapper">
         <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
-          :current-page="pagination.current" :page-sizes="[10, 20, 30, 40]"
-          :page-size="pagination.size" layout="total, sizes, prev, pager, next, jumper"
-          :total="pagination.total">
+          :current-page="pagination.current" :page-sizes="[10, 20, 30, 40]" :page-size="pagination.size"
+          layout="total, sizes, prev, pager, next, jumper" :total="pagination.total">
         </el-pagination>
       </div>
     </div>
@@ -56,6 +54,7 @@
 
 <script>
 import FollowUpDialog from './mixins/FollowUpDialog.vue'
+import { listTopicRecruitment } from '../../api'
 
 export default {
   name: 'ApprovedPatients',
@@ -75,16 +74,16 @@ export default {
   data() {
     return {
       searchForm: {
-        followUpPerson: ''
+        superintendentName: ''
       },
       tableData: [],
       loading: false,
 
       // 招募统计信息
       recruitmentStats: {
-        totalCount: 10,    // 招募人数
-        recruitedCount: 8, // 已招募人数
-        remainingCount: 2  // 待招募人数
+        totalCount: 0,    // 招募人数
+        recruitedCount: 0, // 已招募人数
+        remainingCount: 0  // 待招募人数
       },
 
       // 分页数据
@@ -97,101 +96,54 @@ export default {
   },
   methods: {
     loadData() {
-      // 加载审核通过患者列表数据
-      console.log('加载审核通过患者列表数据', 'topicId:', this.topicId, 'current:', this.pagination.current, 'size:', this.pagination.size)
+      if (!this.topicId) return
+
       this.loading = true
 
-      // 模拟API调用
-      setTimeout(() => {
-        this.tableData = [
-          {
-            id: 1,
-            patientName: '张三',
-            followUpPerson: '李医生',
-            registrationNo: 'REG001',
-            age: 45,
-            enrollmentTime: '2024-01-15',
-            firstFollowUpTime: '2024-01-20',
-            contactInfo: '13812345678'
-          },
-          {
-            id: 2,
-            patientName: '李四',
-            followUpPerson: '王医生',
-            registrationNo: 'REG002',
-            age: 52,
-            enrollmentTime: '2024-01-16',
-            firstFollowUpTime: '2024-01-21',
-            contactInfo: '13987654321'
-          },
-          {
-            id: 3,
-            patientName: '王五',
-            followUpPerson: '张医生',
-            registrationNo: 'REG003',
-            age: 38,
-            enrollmentTime: '2024-01-17',
-            firstFollowUpTime: '2024-01-22',
-            contactInfo: '13511112222'
-          },
-          {
-            id: 4,
-            patientName: '赵六',
-            followUpPerson: '李医生',
-            registrationNo: 'REG004',
-            age: 41,
-            enrollmentTime: '2024-01-18',
-            firstFollowUpTime: '2024-01-23',
-            contactInfo: '13633334444'
-          },
-          {
-            id: 5,
-            patientName: '孙七',
-            followUpPerson: '陈医生',
-            registrationNo: 'REG005',
-            age: 33,
-            enrollmentTime: '2024-01-19',
-            firstFollowUpTime: '2024-01-24',
-            contactInfo: '13755556666'
-          },
-          {
-            id: 6,
-            patientName: '周八',
-            followUpPerson: '刘医生',
-            registrationNo: 'REG006',
-            age: 29,
-            enrollmentTime: '2024-01-20',
-            firstFollowUpTime: '2024-01-25',
-            contactInfo: '13877778888'
+      const params = {
+        condition: {
+          auditStatus: "6", // 审核通过
+          queryType: "1",   // 审核通过患者列表
+          superintendentName: this.searchForm.superintendentName,
+          topicId: this.topicId
+        },
+        pageIndex: this.pagination.current,
+        pageSize: this.pagination.size
+      }
+
+      listTopicRecruitment(params)
+        .then(res => {
+          this.tableData = res.items || []
+          this.pagination.total = res.totalSize || 0
+
+          // 更新统计信息 - 使用总数量而不是当前页数量
+          this.recruitmentStats = {
+            totalCount: this.topicInfo?.recruitCount || 0,
+            recruitedCount: this.pagination.total, // 使用总数量
+            remainingCount: Math.max(0, (this.topicInfo?.recruitCount || 0) - this.pagination.total)
           }
-        ]
 
-        // 设置分页总数
-        this.pagination.total = 25 // 模拟总数
-
-        // 更新统计信息
-        this.recruitmentStats = {
-          totalCount: this.topicInfo?.recruitCount || 10,
-          recruitedCount: this.tableData.length,
-          remainingCount: (this.topicInfo?.recruitCount || 10) - this.tableData.length
-        }
-
-        // 通知父组件更新badge数量
-        this.$emit('updateBadge', this.tableData.length)
-
-        this.loading = false
-      }, 500)
+          // 通知父组件更新badge数量 - 使用extendData.auditAmount
+          this.$emit('updateBadge', res.extendData?.auditAmount || 0)
+        })
+        .catch(() => {
+          this.$message.error('获取审核通过患者列表失败')
+          this.tableData = []
+          this.pagination.total = 0
+        })
+        .finally(() => {
+          this.loading = false
+        })
     },
 
     // 查询方法
     searchPatients() {
-      console.log('查询审核通过患者:', this.searchForm)
       this.pagination.current = 1 // 查询时回到第一页
       this.loadData()
     },
 
     resetSearch() {
-      this.searchForm.followUpPerson = ''
+      this.searchForm.superintendentName = ''
       this.pagination.current = 1 // 重置时回到第一页
       this.loadData()
     },
@@ -210,8 +162,8 @@ export default {
 
     // 操作按钮方法
     handleDetail(row) {
-      console.log('查看详情:', row)
-      // 待实现：打开详情弹窗或跳转详情页面
+      // 向父组件传递详情点击事件
+      this.$emit('detail-click', row)
     },
 
     handleFollowUpRecord(row) {
@@ -227,8 +179,15 @@ export default {
   },
   watch: {
     topicId: {
-      handler(newVal) {
-        if (newVal) {
+      handler(newVal, oldVal) {
+        // 转换为字符串进行比较，避免类型差异导致的重复调用
+        const newValStr = String(newVal);
+        const oldValStr = String(oldVal);
+
+        // 只有当 topicId 真正变化且有效时才加载数据
+        if (newVal && newValStr !== oldValStr && newValStr !== 'undefined') {
+          this.pagination.current = 1 // 切换课题时回到第一页
+          this.searchForm.superintendentName = '' // 清空搜索条件
           this.loadData()
         }
       },

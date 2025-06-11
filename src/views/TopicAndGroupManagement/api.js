@@ -173,3 +173,29 @@ export function completeTopic(data) {
         data
     })
 }
+
+/**
+ * 获取课题招募人员列表
+ * @param {Object} data - 查询参数
+ * @returns {Promise}
+ */
+export function listTopicRecruitment(data) {
+    return request({
+        url: '/topicCustomer/listTopicRecruitment',
+        method: 'post',
+        data
+    })
+}
+
+/**
+ * 批量审核
+ * @param {Object} data - 审核参数
+ * @returns {Promise}
+ */
+export function batchAudit(data) {
+    return request({
+        url: '/topicCustomer/batchAudit',
+        method: 'post',
+        data
+    })
+}

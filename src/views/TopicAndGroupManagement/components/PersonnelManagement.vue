@@ -8,11 +8,8 @@
           </el-badge>
         </span>
         <div class="tab-content">
-          <ApprovedPatients 
-            :topicId="topicId" 
-            :topicInfo="topicInfo"
-            @updateBadge="updateApprovedBadge"
-          />
+          <ApprovedPatients :topicId="topicId" :topicInfo="topicInfo" @updateBadge="updateApprovedBadge"
+            @detail-click="handleDetailClick" />
         </div>
       </el-tab-pane>
 
@@ -23,10 +20,8 @@
           </el-badge>
         </span>
         <div class="tab-content">
-          <SurveyAudit 
-            :topicId="topicId" 
-            @updateBadge="updateSurveyBadge"
-          />
+          <SurveyAudit ref="surveyAudit" :topicId="topicId" @updateBadge="updateSurveyBadge"
+            @detail-click="handleDetailClick" />
         </div>
       </el-tab-pane>
 
@@ -37,10 +32,8 @@
           </el-badge>
         </span>
         <div class="tab-content">
-          <RegistrationAudit 
-            :topicId="topicId" 
-            @updateBadge="updateRegistrationBadge"
-          />
+          <RegistrationAudit ref="registrationAudit" :topicId="topicId" @updateBadge="updateRegistrationBadge"
+            @detail-click="handleDetailClick" />
         </div>
       </el-tab-pane>
     </el-tabs>
@@ -75,15 +68,25 @@ export default {
       // Badge数字显示
       badgeCounts: {
         approved: 0,    // 审核通过患者数量
-        survey: 32,     // 待审核调查问卷数量
-        registration: 8 // 待审核报名数量
+        survey: 0,      // 待审核调查问卷数量
+        registration: 0 // 待审核报名数量
       }
     }
   },
   methods: {
     handleTabClick(tab) {
       console.log('切换到tab:', tab.name)
-      // tab切换时子组件会自动加载数据
+      // 主动触发对应tab的数据加载
+      if (tab.name === 'survey') {
+        this.$refs.surveyAudit && this.$refs.surveyAudit.loadData()
+      } else if (tab.name === 'registration') {
+        this.$refs.registrationAudit && this.$refs.registrationAudit.loadData()
+      }
+    },
+
+    // 处理详情点击事件，向上传递给父组件
+    handleDetailClick(row) {
+      this.$emit('detail-click', row)
     },
 
     // 更新badge数量的方法
@@ -99,25 +102,13 @@ export default {
       this.badgeCounts.registration = count
     },
 
-    // 获取所有tab的数据统计
-    loadBadgeCounts() {
-      if (!this.topicId) return
-
-      // 模拟API调用获取各个tab的数据数量
-      // 实际使用时替换为真实的API调用
-      setTimeout(() => {
-        this.badgeCounts = {
-          approved: Math.floor(Math.random() * 50), // 模拟审核通过患者数量
-          survey: Math.floor(Math.random() * 50),   // 模拟待审核调查问卷数量  
-          registration: Math.floor(Math.random() * 20) // 模拟待审核报名数量
-        }
-      }, 500)
-    },
-
     // 初始化组件数据
     init() {
-      if (this.topicId) {
-        this.loadBadgeCounts() // 加载badge数字
+      // 清空badge数字，等待子组件加载完成后更新
+      this.badgeCounts = {
+        approved: 0,
+        survey: 0,
+        registration: 0
       }
     }
   },

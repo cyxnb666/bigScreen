@@ -4,8 +4,7 @@
     <div class="search-form">
       <el-form :inline="true" :model="searchForm" class="demo-form-inline">
         <el-form-item label="审核状态:">
-          <el-select v-model="searchForm.auditStatus" placeholder="请选择审核状态" clearable
-            style="width: 150px;">
+          <el-select v-model="searchForm.auditStatus" placeholder="请选择审核状态" clearable style="width: 150px;">
             <el-option label="待审核" value="1" />
             <el-option label="审核通过" value="2" />
             <el-option label="审核不通过" value="3" />
@@ -22,17 +21,17 @@
     <el-table :data="tableData" border height="250" style="width: 100%" v-loading="loading"
       @selection-change="handleSelectionChange" ref="auditTable">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column prop="patientName" label="患者名称" align="center" />
-      <el-table-column prop="followUpPerson" label="跟进人" align="center" />
-      <el-table-column prop="registrationNo" label="登记号" align="center" />
+      <el-table-column prop="customerName" label="患者名称" align="center" />
+      <el-table-column prop="superintendentName" label="跟进人" align="center" />
+      <el-table-column prop="customerNo" label="登记号" align="center" />
       <el-table-column prop="age" label="年龄" align="center" />
-      <el-table-column prop="enrollmentTime" label="入组时间" align="center" />
-      <el-table-column prop="firstFollowUpTime" label="首次随访时间" align="center" />
-      <el-table-column prop="contactInfo" label="联系方式" align="center" />
+      <el-table-column prop="signUpTime" label="入组时间" align="center" />
+      <el-table-column prop="firstVisitTime" label="首次随访时间" align="center" />
+      <el-table-column prop="phone" label="联系方式" align="center" />
       <el-table-column label="审核状态" align="center">
         <template slot-scope="scope">
-          <el-tag :type="getAuditStatusType(scope.row.auditStatus)" size="small">
-            {{ getAuditStatusText(scope.row.auditStatus) }}
+          <el-tag :type="getAuditStatusType(scope.row.reviewStatus)" size="small">
+            {{ getAuditStatusText(scope.row.reviewStatus) }}
           </el-tag>
         </template>
       </el-table-column>
@@ -47,20 +46,17 @@
     <!-- 分页组件 -->
     <div class="pagination-wrapper">
       <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
-        :current-page="pagination.current" :page-sizes="[10, 20, 30, 40]"
-        :page-size="pagination.size" layout="total, sizes, prev, pager, next, jumper"
-        :total="pagination.total">
+        :current-page="pagination.current" :page-sizes="[10, 20, 30, 40]" :page-size="pagination.size"
+        layout="total, sizes, prev, pager, next, jumper" :total="pagination.total">
       </el-pagination>
     </div>
 
     <!-- 审核操作按钮 -->
     <div class="audit-actions">
-      <el-button type="success" @click="handleBatchAudit('approve')"
-        :disabled="selectedRows.length === 0">
+      <el-button type="success" @click="handleBatchAudit('approve')" :disabled="!canAudit">
         审核通过
       </el-button>
-      <el-button type="danger" @click="handleBatchAudit('reject')"
-        :disabled="selectedRows.length === 0">
+      <el-button type="danger" @click="handleBatchAudit('reject')" :disabled="!canAudit">
         审核不通过
       </el-button>
     </div>
@@ -72,6 +68,7 @@
 
 <script>
 import FollowUpDialog from './mixins/FollowUpDialog.vue'
+import { listTopicRecruitment, batchAudit } from '../../api'
 
 export default {
   name: 'RegistrationAudit',
@@ -99,75 +96,61 @@ export default {
       }
     }
   },
+  computed: {
+    // 判断是否可以进行审核操作（只有全部是待审核状态时才能审核）
+    canAudit() {
+      if (this.selectedRows.length === 0) return false
+      // 报名审核的待审核状态是 '1'
+      return this.selectedRows.every(row => row.reviewStatus === '1')
+    }
+  },
   methods: {
+    // 页面状态值转换为API状态值
+    getApiAuditStatus(pageStatus) {
+      const statusMap = {
+        '1': '1', // 待审核 -> 报名待审核
+        '2': '6', // 审核通过 -> 审核通过
+        '3': '2'  // 审核不通过 -> 报名审核不通过
+      }
+      return pageStatus ? statusMap[pageStatus] || '' : ''
+    },
+
     loadData() {
-      // 加载报名审核数据
-      console.log('加载报名审核数据', 'topicId:', this.topicId, 'current:', this.pagination.current, 'size:', this.pagination.size)
+      if (!this.topicId) return
+
       this.loading = true
 
-      // 模拟API调用 - 实际使用时替换为报名审核的API
-      setTimeout(() => {
-        this.tableData = [
-          {
-            id: 1,
-            patientName: '周八',
-            followUpPerson: '刘医生',
-            registrationNo: 'REG006',
-            age: 29,
-            enrollmentTime: '2024-01-20',
-            firstFollowUpTime: '2024-01-25',
-            contactInfo: '13877778888',
-            auditStatus: '1' // 待审核
-          },
-          {
-            id: 2,
-            patientName: '吴九',
-            followUpPerson: '黄医生',
-            registrationNo: 'REG007',
-            age: 47,
-            enrollmentTime: '2024-01-21',
-            firstFollowUpTime: '2024-01-26',
-            contactInfo: '13999990000',
-            auditStatus: '3' // 审核不通过
-          },
-          {
-            id: 3,
-            patientName: '郑十',
-            followUpPerson: '何医生',
-            registrationNo: 'REG008',
-            age: 35,
-            enrollmentTime: '2024-01-22',
-            firstFollowUpTime: '2024-01-27',
-            contactInfo: '13111111111',
-            auditStatus: '1' // 待审核
-          },
-          {
-            id: 4,
-            patientName: '钱十一',
-            followUpPerson: '徐医生',
-            registrationNo: 'REG009',
-            age: 42,
-            enrollmentTime: '2024-01-23',
-            firstFollowUpTime: '2024-01-28',
-            contactInfo: '13222222222',
-            auditStatus: '2' // 审核通过
-          }
-        ]
+      const params = {
+        condition: {
+          auditStatus: this.getApiAuditStatus(this.searchForm.auditStatus),
+          queryType: "3", // 报名审核
+          superintendentName: "",
+          topicId: this.topicId
+        },
+        pageIndex: this.pagination.current,
+        pageSize: this.pagination.size
+      }
 
-        // 设置分页总数
-        this.pagination.total = 18 // 模拟总数
+      listTopicRecruitment(params)
+        .then(res => {
+          this.tableData = res.items || []
+          this.pagination.total = res.totalSize || 0
 
-        // 通知父组件更新badge数量（计算待审核数量）
-        const pendingCount = this.tableData.filter(item => item.auditStatus === '1').length
-        this.$emit('updateBadge', pendingCount)
-
-        this.loading = false
-      }, 500)
+          // 通知父组件更新badge数量 - 使用extendData.auditAmount
+          this.$emit('updateBadge', res.extendData?.auditAmount || 0)
+        })
+        .catch(() => {
+          this.$message.error('获取报名审核列表失败')
+          this.tableData = []
+          this.pagination.total = 0
+        })
+        .finally(() => {
+          this.loading = false
+        })
     },
 
     // 查询方法
     searchAudit() {
-      console.log('查询报名审核:', this.searchForm)
       this.pagination.current = 1 // 查询时回到第一页
       this.loadData()
     },
@@ -204,6 +187,12 @@ export default {
         return
       }
 
+      // 检查是否全部为待审核状态
+      if (!this.canAudit) {
+        this.$message.warning('只能对状态为"待审核"的记录进行审核操作')
+        return
+      }
+
       this.$confirm(`确定要将选中的 ${this.selectedRows.length} 条报名记录${actionText}吗？`, '确认', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
@@ -217,42 +206,37 @@ export default {
     },
 
     performBatchAudit(action, selectedRows) {
-      const ids = selectedRows.map(row => row.id)
-      const newStatus = action === 'approve' ? '2' : '3'
+      const topicCustomerIds = selectedRows.map(row => row.customerId)
+      const auditStatus = action === 'approve' ? '1' : '2'
       const actionText = action === 'approve' ? '审核通过' : '审核不通过'
 
-      console.log(`执行报名${actionText}操作:`, {
-        action,
-        ids,
-        newStatus
-      })
+      const params = {
+        auditStatus: auditStatus,
+        queryType: "3", // 报名审核
+        topicCustomerIds: topicCustomerIds,
+        topicId: this.topicId
+      }
 
-      // 模拟API调用
-      setTimeout(() => {
-        // 更新本地数据状态
-        this.tableData.forEach(item => {
-          if (ids.includes(item.id)) {
-            item.auditStatus = newStatus
-          }
+      console.log(`执行报名${actionText}操作:`, params)
+
+      // 调用真实的批量审核API
+      batchAudit(params)
+        .then(() => {
+          this.$refs.auditTable.clearSelection()
+          this.selectedRows = []
+          this.$message.success(`报名${actionText}操作成功`)
+          // 重新加载数据
+          this.loadData()
         })
-        this.$refs.auditTable.clearSelection()
-        this.selectedRows = []
-
-        this.$message.success(`报名${actionText}操作成功`)
-
-        // 重新计算并更新badge数量
-        const pendingCount = this.tableData.filter(item => item.auditStatus === '1').length
-        this.$emit('updateBadge', pendingCount)
-
-        // 实际项目中，这里应该调用对应的API，例如:
-        // return auditRegistrationBatch({ ids, status: newStatus })
-      }, 1000)
+        .catch(() => {
+          this.$message.error(`报名${actionText}操作失败`)
+        })
     },
 
     // 操作按钮方法
     handleDetail(row) {
-      console.log('查看详情:', row)
-      // 待实现：打开详情弹窗或跳转详情页面
+      // 向父组件传递详情点击事件
+      this.$emit('detail-click', row)
     },
 
     handleFollowUpRecord(row) {
@@ -261,22 +245,22 @@ export default {
       this.$refs.FollowUpDialog.open(row)
     },
 
-    // 获取审核状态显示文本
+    // 获取审核状态显示文本（API返回的状态）
     getAuditStatusText(status) {
       const statusMap = {
         '1': '待审核',
-        '2': '审核通过',
-        '3': '审核不通过'
+        '6': '审核通过',
+        '2': '审核不通过'
       }
       return statusMap[status] || '未知状态'
     },
 
-    // 获取审核状态标签类型
+    // 获取审核状态标签类型（API返回的状态）
     getAuditStatusType(status) {
       const typeMap = {
         '1': 'warning',
-        '2': 'success',
-        '3': 'danger'
+        '6': 'success',
+        '2': 'danger'
       }
       return typeMap[status] || 'info'
     }
@@ -285,10 +269,12 @@ export default {
     topicId: {
       handler(newVal) {
         if (newVal) {
-          this.loadData()
+          this.pagination.current = 1 // 切换课题时回到第一页
+          this.searchForm.auditStatus = '' // 清空搜索条件
+          // 注意：这里不自动加载数据，等待父组件主动调用
         }
       },
-      immediate: true
+      immediate: false // 改为false，不立即执行
     }
   }
 }

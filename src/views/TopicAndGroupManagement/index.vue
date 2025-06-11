@@ -6,9 +6,8 @@
     </el-tabs>
     <div class="TopicAndGroupManagement-content" v-if="activeName === '1'">
       <QueryTable :formDate="formDate" :queryList="queryList" :tableData="tableData" :tableColumn="tableColumn"
-                  @onSearch="onSearch" label-width="90px" :tableSelection="true"
-                  :handleSelectionChange="handleSelectionChange"
-                  v-loading="loading">
+        @onSearch="onSearch" label-width="90px" :tableSelection="true" :handleSelectionChange="handleSelectionChange"
+        v-loading="loading">
         <template v-slot:functionalArea>
           <el-button type="primary" size="small" @click="create">添加</el-button>
           <el-button type="danger" size="small" @click="deleteFn" :disabled="tableSelected.length === 0">删除
@@ -18,7 +17,7 @@
           <el-table-column label="状态" width="80" align="center">
             <template slot-scope="scope">
               <el-switch v-model="scope.row.enableFlag" :active-value="'1'" :inactive-value="'0'" active-color="#13ce66"
-                         inactive-color="#ff4949" @change="handleStatusChange(scope.row)">
+                inactive-color="#ff4949" @change="handleStatusChange(scope.row)">
               </el-switch>
             </template>
           </el-table-column>
@@ -38,7 +37,7 @@
     </div>
     <div class="grouping" v-else v-loading="groupingLoading">
       <div class="topicName">
-        <TitleLabel title="课题名称"/>
+        <TitleLabel title="课题名称" />
         <div class="topicName-content">
           <el-radio-group v-model="topicCode" size="small">
             <el-radio-button v-for="(item, index) in topicList" :key="index" :label="item.topicId">{{ item.topicName }}
@@ -59,21 +58,19 @@
 
       <!-- 课题招募人员清单部分 -->
       <div class="personnelGrouping">
-        <TitleLabel title="课题招募人员清单"/>
+        <TitleLabel title="课题招募人员清单" />
         <div class="personnelGrouping-content">
-          <PersonnelManagement 
-            ref="PersonnelManagement"
-            :topicId="topicCode" 
-            :topicInfo="currentTopic"
-          />
+          <PersonnelManagement ref="PersonnelManagement" :topicId="topicCode" :topicInfo="currentTopic"
+            @detail-click="handlePersonnelDetail" />
         </div>
       </div>
 
-      <TopicGroupAddOrEdit ref="TopicGroupAddOrEdit"/>
+      <TopicGroupAddOrEdit ref="TopicGroupAddOrEdit" />
     </div>
-    <TopicAddOrEdit ref="TopicAddOrEdit"
-                    :topicLeaderOptions="topicLeaderOptions"
-                    :topicTypeOptions="topicTypeOptions"/>
+    <TopicAddOrEdit ref="TopicAddOrEdit" :topicLeaderOptions="topicLeaderOptions"
+      :topicTypeOptions="topicTypeOptions" />
+    <Details ref="Details" :type="1" :show-audit="true" :disable-audit="isDetailsDisabled"
+      @auditSuccess="handleAuditSuccess" />
   </div>
 </template>
 
@@ -83,6 +80,7 @@ import TopicAddOrEdit from '@/views/TopicAndGroupManagement/components/TopicAddO
 import TitleLabel from '@/components/TitleLabel/index.vue'
 import TopicGroupAddOrEdit from './components/TopicGroupAddOrEdit.vue'
 import PersonnelManagement from './components/PersonnelManagement.vue'
+import Details from '@/views/CustomerManagement/components/Details.vue'
 import {
   getTopicByPage,
   deleteTopic,
@@ -101,9 +99,10 @@ export default {
     TopicAddOrEdit,
     QueryTable,
     TopicGroupAddOrEdit,
-    PersonnelManagement
+    PersonnelManagement,
+    Details
   },
-  data () {
+  data() {
     return {
       activeName: '1',
       formDate: {
@@ -167,7 +166,7 @@ export default {
     }
   },
   methods: {
-    onSearch (params) {
+    onSearch(params) {
       this.loading = true
       if (params) {
         this.formDate.current = params.current
@@ -179,44 +178,44 @@ export default {
         pageSize: params?.size || this.formDate.size
       }
       getTopicByPage(queryParams)
-          .then(res => {
-            this.tableData = res.items || []
-            this.formDate.total = res.totalSize || 0
-          })
-          .catch(() => {
-            this.$message.error('获取课题列表失败')
-          })
-          .finally(() => {
-            this.loading = false
-          })
+        .then(res => {
+          this.tableData = res.items || []
+          this.formDate.total = res.totalSize || 0
+        })
+        .catch(() => {
+          this.$message.error('获取课题列表失败')
+        })
+        .finally(() => {
+          this.loading = false
+        })
     },
-    getTopicPrincipalList () {
+    getTopicPrincipalList() {
       getTopicPrincipal()
-          .then(res => {
-            // 将返回的字符串数组转换为选择框需要的格式
-            const options = (res || []).map(name => ({
-              label: name,
-              value: name // 使用姓名作为value值
-            }))
+        .then(res => {
+          // 将返回的字符串数组转换为选择框需要的格式
+          const options = (res || []).map(name => ({
+            label: name,
+            value: name // 使用姓名作为value值
+          }))
 
-            // 找到课题负责人的查询选项并更新
-            const topicLeaderQuery = this.queryList.find(item => item.prop === 'topicLeader')
-            if (topicLeaderQuery) {
-              topicLeaderQuery.options = options
-            }
-          })
-          .catch(() => {
-            this.$message.error('获取课题负责人列表失败')
-          })
+          // 找到课题负责人的查询选项并更新
+          const topicLeaderQuery = this.queryList.find(item => item.prop === 'topicLeader')
+          if (topicLeaderQuery) {
+            topicLeaderQuery.options = options
+          }
+        })
+        .catch(() => {
+          this.$message.error('获取课题负责人列表失败')
+        })
     },
-    edit (row) {
+    edit(row) {
       console.log(row)
       this.$refs.TopicAddOrEdit.initialization('edit', row)
     },
-    create () {
+    create() {
       this.$refs.TopicAddOrEdit.initialization('add')
     },
-    deleteFn () {
+    deleteFn() {
       if (this.tableSelected.length === 0) {
         return
       }
@@ -238,99 +237,132 @@ export default {
       }).catch(() => {
       })
     },
-    handleStatusChange (row) {
+    handleStatusChange(row) {
       updateTopicStatus(row.topicId)
-          .then(() => {
-            this.$message.success('状态更新成功')
-          })
-          .catch(() => {
-            // 如果失败了就回滚enableFlag的状态
-            row.enableFlag = row.enableFlag === '1' ? '0' : '1'
-            this.$message.error('状态更新失败')
-          })
+        .then(() => {
+          this.$message.success('状态更新成功')
+        })
+        .catch(() => {
+          // 如果失败了就回滚enableFlag的状态
+          row.enableFlag = row.enableFlag === '1' ? '0' : '1'
+          this.$message.error('状态更新失败')
+        })
     },
-    handleSelectionChange (rows) {
+    handleSelectionChange(rows) {
       this.tableSelected = rows
     },
-    getTopicTypeOptions () {
+    getTopicTypeOptions() {
       getDictByType('TOPIC_TYPE')
-          .then(res => {
-            this.topicTypeOptions = (res || []).map(item => ({
-              value: item.dictCode,
-              label: item.dictName
-            }))
-          })
-          .catch(() => {
-            this.$message.error('获取课题类别失败')
-          })
+        .then(res => {
+          this.topicTypeOptions = (res || []).map(item => ({
+            value: item.dictCode,
+            label: item.dictName
+          }))
+        })
+        .catch(() => {
+          this.$message.error('获取课题类别失败')
+        })
     },
-    getTopicLeaderOptions () {
+    getTopicLeaderOptions() {
       getTopicLeaders()
-          .then(res => {
-            this.topicLeaderOptions = (res || []).map(name => ({
-              label: name.userName,
-              value: name.userId // 使用姓名作为value值
-            }))
-          })
-          .catch(() => {
-            this.$message.error('获取课题负责人列表失败')
-          })
+        .then(res => {
+          this.topicLeaderOptions = (res || []).map(name => ({
+            label: name.userName,
+            value: name.userId // 使用姓名作为value值
+          }))
+        })
+        .catch(() => {
+          this.$message.error('获取课题负责人列表失败')
+        })
     },
-    generateQRCode (row) {
+    generateQRCode(row) {
       this.title = row.topicName
       this.qrCodeDialog.loading = true
       this.qrCodeDialog.visible = true
 
       generateQrCode(row.topicId)
-          .then(res => {
-            // 拼接完整的OSS URL
-            this.qrCodeDialog.url = `${this.ossBaseUrl}${res}`
-          })
-          .catch(() => {
-            this.$message.error('生成二维码失败')
-            this.qrCodeDialog.visible = false
-          })
-          .finally(() => {
-            this.qrCodeDialog.loading = false
-          })
+        .then(res => {
+          // 拼接完整的OSS URL
+          this.qrCodeDialog.url = `${this.ossBaseUrl}${res}`
+        })
+        .catch(() => {
+          this.$message.error('生成二维码失败')
+          this.qrCodeDialog.visible = false
+        })
+        .finally(() => {
+          this.qrCodeDialog.loading = false
+        })
     },
-    handleClick (tab) {
+    handleClick(tab) {
       if (tab.name === '2') {
         this.groupingLoading = true
 
         getAllTopic()
-            .then(res => {
-              this.topicList = res.map(topic => ({
-                topicId: topic.topicId,
-                topicName: topic.topicName,
-                topicCondition: topic.topicCondition,
-                recruitCount: topic.recruitCount,
-                status: topic.status
-              }))
+          .then(res => {
+            this.topicList = res.map(topic => ({
+              topicId: topic.topicId,
+              topicName: topic.topicName,
+              topicCondition: topic.topicCondition,
+              recruitCount: topic.recruitCount,
+              status: topic.status
+            }))
 
-              // 如果有课题列表，选中第一个
-              if (this.topicList.length > 0) {
-                this.topicCode = this.topicList[0].topicId
-              }
-            })
-            .catch(() => {
-              this.$message.error('获取课题列表失败')
-            })
-            .finally(() => {
-              this.groupingLoading = false
-            })
+            // 如果有课题列表，选中第一个
+            if (this.topicList.length > 0) {
+              this.topicCode = this.topicList[0].topicId
+            }
+          })
+          .catch(() => {
+            this.$message.error('获取课题列表失败')
+          })
+          .finally(() => {
+            this.groupingLoading = false
+          })
+      }
+    },
+    // 在methods中添加
+    handlePersonnelDetail(row) {
+      const detailData = {
+        ...row,
+        topicId: this.topicCode,
+        customerId: row.customerId
+      }
+      this.$refs.Details.initialization(detailData)
+    },
+
+    // 如果还没有handleAuditSuccess方法，也需要添加
+    handleAuditSuccess() {
+      // 刷新当前选中课题的人员数据
+      if (this.$refs.PersonnelManagement) {
+        this.$refs.PersonnelManagement.init()
+        // 重新加载当前激活tab的数据
+        const activeTab = this.$refs.PersonnelManagement.activeTab
+        if (activeTab === 'approved') {
+          // 审核通过列表会自动重新加载
+        } else if (activeTab === 'survey') {
+          this.$refs.PersonnelManagement.$refs.surveyAudit &&
+            this.$refs.PersonnelManagement.$refs.surveyAudit.loadData()
+        } else if (activeTab === 'registration') {
+          this.$refs.PersonnelManagement.$refs.registrationAudit &&
+            this.$refs.PersonnelManagement.$refs.registrationAudit.loadData()
+        }
       }
     }
   },
   computed: {
-    currentTopic () {
+    isDetailsDisabled() {
+      if (!this.currentTopic) return false
+      if (this.currentTopic.status === '1') return true
+      return false
+    },
+    currentTopic() {
       return this.topicList.find(topic => topic.topicId === this.topicCode) || null
     },
-    currentTopicConditions () {
+    currentTopicConditions() {
       const currentTopic = this.topicList.find(topic => topic.topicId === this.topicCode)
       return currentTopic ? currentTopic.topicCondition : []
     },
-    ossBaseUrl () {
+    ossBaseUrl() {
       try {
         const ossConfig = JSON.parse(sessionStorage.getItem('ossConfig'))
         if (ossConfig) {
@@ -343,13 +375,13 @@ export default {
       }
     }
   },
-  created () {
+  created() {
     this.onSearch()
     // this.getTopicPrincipalList()
     this.getTopicTypeOptions()
     this.getTopicLeaderOptions()
   },
-  mounted () {
+  mounted() {
     // your code here
   }
 }
