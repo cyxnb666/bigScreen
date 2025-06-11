@@ -64,3 +64,39 @@ export function getAppointTaskList(params) {
         data: params
     })
 }
+
+/**
+ * 获取我的课题列表
+ * @returns {Promise}
+ */
+export function getMyTopic() {
+    return request({
+        url: '/topic/getMyTopic',
+        method: 'get'
+    })
+}
+
+/**
+ * 根据课题ID获取患者列表
+ * @param {string|number} topicId - 课题ID
+ * @returns {Promise}
+ */
+export function getTopicCustomers(topicId) {
+    return request({
+        url: `/topicCustomer/topicCustomers/${topicId}`,
+        method: 'get'
+    })
+}
+
+/**
+ * 新增预约
+ * @param {Object} data - 预约数据
+ * @returns {Promise}
+ */
+export function addAppointment(data) {
+    return request({
+        url: '/appoint/pcAppoint',
+        method: 'post',
+        data
+    })
+}

@@ -22,13 +22,14 @@
 import QueryTable from '@/components/QueryTable/index.vue'
 import Details from '@/views/CustomerManagement/components/Details.vue'
 import AppointmentAdd from './AppointmentAdd.vue'
-import { getAppointTaskList } from '../api'
+import { getAppointTaskList, getMyTopic } from '../api'
 
 export default {
   name: 'AppointmentTask',
   components: { Details, QueryTable, AppointmentAdd },
   data() {
     return {
+      topicOptions: [],
       loading: false,
       formDate: {
         condition: {
@@ -142,8 +143,18 @@ export default {
         customerId: row.customerId
       })
     },
+    fetchTopicOptions() {
+      getMyTopic()
+        .then(res => {
+          this.topicOptions = res || []
+          console.log('获取到的课题数据:', res)
+        })
+        .catch(() => {
+          this.$message.error('获取课题列表失败')
+        })
+    },
     handleAdd() {
-      this.$refs.AppointmentAdd.open()
+      this.$refs.AppointmentAdd.open(this.topicOptions) // 传递课题数据
     },
     initialization() {
       this.$nextTick(() => {
@@ -153,6 +164,7 @@ export default {
     }
   },
   created() {
+    this.fetchTopicOptions()
     this.onSearch()
   }
 }
