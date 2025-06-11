@@ -22,7 +22,7 @@
           {{ recruitmentStats.remainingCount }}人)
         </div>
       </div>
-      <el-table :data="tableData" border style="width: 100%" v-loading="loading">
+      <el-table :data="tableData" border style="width: 100%" height="250" v-loading="loading">
         <el-table-column prop="patientName" label="患者名称" align="center" />
         <el-table-column prop="followUpPerson" label="跟进人" align="center" />
         <el-table-column prop="registrationNo" label="登记号" align="center" />

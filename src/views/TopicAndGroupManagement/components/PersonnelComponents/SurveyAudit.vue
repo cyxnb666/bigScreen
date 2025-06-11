@@ -19,7 +19,7 @@
     </div>
 
     <!-- 调查问卷审核表格 -->
-    <el-table :data="tableData" border style="width: 100%" v-loading="loading"
+    <el-table :data="tableData" border height="300" style="width: 100%" v-loading="loading"
       @selection-change="handleSelectionChange" ref="auditTable">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column prop="patientName" label="患者名称" align="center" />
