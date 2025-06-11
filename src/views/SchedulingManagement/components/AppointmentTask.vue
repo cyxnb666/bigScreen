@@ -2,6 +2,9 @@
   <div class="AppointmentTask">
     <QueryTable :formDate="formDate" :queryList="queryList" :tableData="tableData" :tableColumn="tableColumn"
       @onSearch="onSearch" label-width="100px" ref="QueryTable" v-loading="loading">
+      <template v-slot:functionalArea>
+        <el-button type="primary" size="small" @click="handleAdd">新增</el-button>
+      </template>
       <template v-slot:operation>
         <el-table-column label="操作" width="80" align="center">
           <template slot-scope="scope">
@@ -11,17 +14,19 @@
       </template>
     </QueryTable>
     <Details ref="Details" :type="1" :show-audit="false" :show-superintendent="true" />
+    <AppointmentAdd ref="AppointmentAdd" @refresh="onSearch" />
   </div>
 </template>
 
 <script>
 import QueryTable from '@/components/QueryTable/index.vue'
 import Details from '@/views/CustomerManagement/components/Details.vue'
+import AppointmentAdd from './AppointmentAdd.vue'
 import { getAppointTaskList } from '../api'
 
 export default {
   name: 'AppointmentTask',
-  components: { Details, QueryTable },
+  components: { Details, QueryTable, AppointmentAdd },
   data() {
     return {
       loading: false,
@@ -136,6 +141,9 @@ export default {
       this.$refs.Details.initialization({
         customerId: row.customerId
       })
+    },
+    handleAdd() {
+      this.$refs.AppointmentAdd.open()
     },
     initialization() {
       this.$nextTick(() => {
