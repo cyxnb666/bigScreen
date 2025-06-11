@@ -64,12 +64,20 @@
         审核不通过
       </el-button>
     </div>
+
+    <!-- 跟进记录对话框 -->
+    <FollowUpDialog ref="FollowUpDialog" />
   </div>
 </template>
 
 <script>
+import FollowUpDialog from './mixins/FollowUpDialog.vue'
+
 export default {
   name: 'SurveyAudit',
+  components: {
+    FollowUpDialog
+  },
   props: {
     topicId: {
       type: [String, Number],
@@ -248,8 +256,9 @@ export default {
     },
 
     handleFollowUpRecord(row) {
-      console.log('跟进记录:', row)
-      // 待实现：打开跟进记录弹窗
+      console.log('打开跟进记录:', row)
+      // 打开跟进记录对话框
+      this.$refs.FollowUpDialog.open(row)
     },
 
     // 获取审核状态显示文本
