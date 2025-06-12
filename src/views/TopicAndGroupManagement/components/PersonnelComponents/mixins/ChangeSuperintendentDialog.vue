@@ -57,13 +57,15 @@ export default {
       superintendentOptions: [],
       
       // 当前患者信息
-      patientInfo: null
+      patientInfo: null,
+      topicId: null
     }
   },
   methods: {
     // 打开弹窗
-    open(patientData) {
+    open(patientData, topicId) {
       this.patientInfo = patientData
+      this.topicId = topicId
       this.dialogVisible = true
       this.loadSuperintendentOptions()
     },
@@ -81,6 +83,7 @@ export default {
       }
       this.superintendentOptions = []
       this.patientInfo = null
+      this.topicId = null
       this.$nextTick(() => {
         this.$refs.form && this.$refs.form.clearValidate()
       })
@@ -90,7 +93,7 @@ export default {
     loadSuperintendentOptions() {
       this.loading = true
       
-      getTopicLeaders()
+      getTopicLeaders(this.topicId)
         .then(res => {
           this.superintendentOptions = res || []
         })

@@ -385,19 +385,6 @@ computed: {
     }
   },
 watch: {
-    // 监听课题代码变化，重置人员管理到第一个tab
-    topicCode: {
-      handler(newVal, oldVal) {
-        // 只有在课题真正切换时才重置，且当前在课题人员管理tab，且不是初始化时
-        if (newVal && oldVal && newVal !== oldVal && this.activeName === '2') {
-          this.$nextTick(() => {
-            if (this.$refs.PersonnelManagement) {
-              this.$refs.PersonnelManagement.resetToFirstTab()
-            }
-          })
-        }
-      }
-    }
   },
   created() {
     this.onSearch()

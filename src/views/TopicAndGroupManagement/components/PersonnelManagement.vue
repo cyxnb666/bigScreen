@@ -144,17 +144,28 @@ export default {
       })
     }
   },
-  watch: {
-    topicId: {
-      handler(newVal, oldVal) {
-        // 只有当topicId真正变化且有效时才初始化
-        if (newVal && newVal !== oldVal && String(newVal) !== 'undefined') {
-          this.init()
+watch: {
+  topicId: {
+    handler(newVal, oldVal) {
+      // 只有当topicId真正变化且有效时才初始化
+      if (newVal && newVal !== oldVal && String(newVal) !== 'undefined') {
+        // 重置到第一个tab
+        this.activeTab = 'approved'
+        // 清空badge数字
+        this.badgeCounts = {
+          approved: 0,
+          survey: 0,
+          registration: 0
         }
-      },
-      immediate: false // 不立即执行
-    }
+        // 延迟初始化，确保组件状态已更新
+        this.$nextTick(() => {
+          this.loadCurrentTabData()
+        })
+      }
+    },
+    immediate: false
   }
+}
 }
 </script>
 

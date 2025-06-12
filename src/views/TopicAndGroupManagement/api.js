@@ -34,11 +34,18 @@ export function getTopicPrincipal() {
 }
 
 // 获取课题负责人列表
-export function getTopicLeaders() {
-    return request({
+export function getTopicLeaders(topicId) {
+    const config = {
         url: '/sysUser/getAllTopicLeader', 
         method: 'get'
-    })
+    }
+    
+    // 只有当 topicId 存在且有效时才添加 params
+    if (topicId !== undefined && topicId !== null && topicId !== '') {
+        config.params = { topicId }
+    }
+    
+    return request(config)
 }
 // 获取全部调查问卷
 export function getSurveyAll() {

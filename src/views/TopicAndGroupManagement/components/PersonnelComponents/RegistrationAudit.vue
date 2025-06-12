@@ -206,7 +206,7 @@ export default {
     },
 
     performBatchAudit(action, selectedRows) {
-      const topicCustomerIds = selectedRows.map(row => row.customerId)
+      const topicCustomerIds = selectedRows.map(row => row.topicCustomerId)
       const auditStatus = action === 'approve' ? '1' : '2'
       const actionText = action === 'approve' ? '审核通过' : '审核不通过'
 
@@ -265,19 +265,21 @@ export default {
       return typeMap[status] || 'info'
     }
   },
-  watch: {
-    topicId: {
-      handler(newVal, oldVal) {
-        // 只有当 topicId 真正变化且有效时才重置数据
-        if (newVal && newVal !== oldVal && String(newVal) !== 'undefined' && String(newVal) !== '') {
-          this.pagination.current = 1 // 切换课题时回到第一页
-          this.searchForm.auditStatus = '' // 清空搜索条件
-          // 注意：这里不自动加载数据，等待父组件主动调用loadData
-        }
-      },
-      immediate: false // 不立即执行
-    }
+watch: {
+  topicId: {
+    handler(newVal, oldVal) {
+      // 只重置状态，不自动加载数据
+      if (newVal && newVal !== oldVal && String(newVal) !== 'undefined' && String(newVal) !== '') {
+        this.pagination.current = 1
+        this.searchForm.auditStatus = ''
+        this.tableData = []
+        this.pagination.total = 0
+        // 移除 this.loadData() 调用
+      }
+    },
+    immediate: false
   }
+}
 }
 </script>
 

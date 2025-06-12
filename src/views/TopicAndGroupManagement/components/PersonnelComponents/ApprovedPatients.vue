@@ -180,7 +180,7 @@ export default {
     handleChangeFollowUpPerson(row) {
       console.log('变更跟进人:', row)
       // 打开变更跟进人弹窗
-      this.$refs.ChangeSuperintendentDialog.open(row)
+      this.$refs.ChangeSuperintendentDialog.open(row, this.topicId)
     },
 
     // 处理变更跟进人成功后的回调
@@ -189,19 +189,21 @@ export default {
       this.loadData()
     }
   },
-  watch: {
-    topicId: {
-      handler(newVal, oldVal) {
-        // 只有当 topicId 真正变化且有效时才加载数据
-        if (newVal && newVal !== oldVal && String(newVal) !== 'undefined' && String(newVal) !== '') {
-          this.pagination.current = 1 // 切换课题时回到第一页
-          this.searchForm.superintendentName = '' // 清空搜索条件
-          this.loadData()
-        }
-      },
-      immediate: false // 不立即执行，等待父组件主动调用
-    }
+watch: {
+  topicId: {
+    handler(newVal, oldVal) {
+      // 只重置状态，不自动加载数据
+      if (newVal && newVal !== oldVal && String(newVal) !== 'undefined' && String(newVal) !== '') {
+        this.pagination.current = 1
+        this.searchForm.auditStatus = ''
+        this.tableData = []
+        this.pagination.total = 0
+        // 移除 this.loadData() 调用
+      }
+    },
+    immediate: false
   }
+}
 }
 </script>
 
