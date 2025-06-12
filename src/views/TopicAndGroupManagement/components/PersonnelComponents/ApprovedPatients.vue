@@ -49,17 +49,22 @@
 
     <!-- 跟进记录对话框 -->
     <FollowUpDialog ref="FollowUpDialog" />
+    
+    <!-- 变更跟进人对话框 -->
+    <ChangeSuperintendentDialog ref="ChangeSuperintendentDialog" @change-success="handleChangeSuccess" />
   </div>
 </template>
 
 <script>
 import FollowUpDialog from './mixins/FollowUpDialog.vue'
+import ChangeSuperintendentDialog from './mixins/ChangeSuperintendentDialog.vue'
 import { listTopicRecruitment } from '../../api'
 
 export default {
   name: 'ApprovedPatients',
   components: {
-    FollowUpDialog
+    FollowUpDialog,
+    ChangeSuperintendentDialog
   },
   props: {
     topicId: {
@@ -168,30 +173,33 @@ export default {
 
     handleFollowUpRecord(row) {
       console.log('打开跟进记录:', row)
-      // 打开跟进记录对话框
-      this.$refs.FollowUpDialog.open(row)
+      // 打开跟进记录对话框，传递topicId参数
+      this.$refs.FollowUpDialog.open(row, this.topicId)
     },
 
     handleChangeFollowUpPerson(row) {
       console.log('变更跟进人:', row)
-      // 待实现：打开变更跟进人弹窗
+      // 打开变更跟进人弹窗
+      this.$refs.ChangeSuperintendentDialog.open(row)
+    },
+
+    // 处理变更跟进人成功后的回调
+    handleChangeSuccess() {
+      // 重新加载当前页数据
+      this.loadData()
     }
   },
   watch: {
     topicId: {
       handler(newVal, oldVal) {
-        // 转换为字符串进行比较，避免类型差异导致的重复调用
-        const newValStr = String(newVal);
-        const oldValStr = String(oldVal);
-
         // 只有当 topicId 真正变化且有效时才加载数据
-        if (newVal && newValStr !== oldValStr && newValStr !== 'undefined') {
+        if (newVal && newVal !== oldVal && String(newVal) !== 'undefined' && String(newVal) !== '') {
           this.pagination.current = 1 // 切换课题时回到第一页
           this.searchForm.superintendentName = '' // 清空搜索条件
           this.loadData()
         }
       },
-      immediate: true
+      immediate: false // 不立即执行，等待父组件主动调用
     }
   }
 }

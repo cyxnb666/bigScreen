@@ -199,3 +199,42 @@ export function batchAudit(data) {
         data
     })
 }
+
+/**
+ * 获取历史跟进记录
+ * @param {Object} data - 查询参数
+ * @returns {Promise}
+ */
+export function getAllHistoryFollowContent(data) {
+    return request({
+        url: '/historyFollowContent/getAllHistoryFollowContent',
+        method: 'post',
+        data
+    })
+}
+
+/**
+ * 新增跟进记录
+ * @param {Object} data - 跟进记录数据
+ * @returns {Promise}
+ */
+export function addHistoryFollowContent(data) {
+    return request({
+        url: '/historyFollowContent/addHistoryFollowContent',
+        method: 'post',
+        data
+    })
+}
+
+/**
+ * 变更跟进人
+ * @param {Object} data - 变更参数
+ * @returns {Promise}
+ */
+export function changeSuperintendent(data) {
+    return request({
+        url: '/topicCustomer/changeSuperintendent',
+        method: 'post',
+        data
+    })
+}

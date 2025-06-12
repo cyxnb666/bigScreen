@@ -8,7 +8,7 @@
           </el-badge>
         </span>
         <div class="tab-content">
-          <ApprovedPatients :topicId="topicId" :topicInfo="topicInfo" @updateBadge="updateApprovedBadge"
+          <ApprovedPatients ref="approvedPatients" :topicId="topicId" :topicInfo="topicInfo" @updateBadge="updateApprovedBadge"
             @detail-click="handleDetailClick" />
         </div>
       </el-tab-pane>
@@ -77,7 +77,9 @@ export default {
     handleTabClick(tab) {
       console.log('切换到tab:', tab.name)
       // 主动触发对应tab的数据加载
-      if (tab.name === 'survey') {
+      if (tab.name === 'approved') {
+        this.$refs.approvedPatients && this.$refs.approvedPatients.loadData()
+      } else if (tab.name === 'survey') {
         this.$refs.surveyAudit && this.$refs.surveyAudit.loadData()
       } else if (tab.name === 'registration') {
         this.$refs.registrationAudit && this.$refs.registrationAudit.loadData()
@@ -110,16 +112,47 @@ export default {
         survey: 0,
         registration: 0
       }
+      
+      // 只加载当前激活tab的数据，避免重复调用
+      this.loadCurrentTabData()
+    },
+    
+    // 加载当前激活tab的数据
+    loadCurrentTabData() {
+      if (!this.topicId) return // 如果topicId无效，不加载数据
+      
+      if (this.activeTab === 'approved') {
+        this.$refs.approvedPatients && this.$refs.approvedPatients.loadData()
+      } else if (this.activeTab === 'survey') {
+        this.$refs.surveyAudit && this.$refs.surveyAudit.loadData()
+      } else if (this.activeTab === 'registration') {
+        this.$refs.registrationAudit && this.$refs.registrationAudit.loadData()
+      }
+    },
+    
+    // 重置到第一个tab并加载数据
+    resetToFirstTab() {
+      this.activeTab = 'approved'
+      // 清空badge数字
+      this.badgeCounts = {
+        approved: 0,
+        survey: 0,
+        registration: 0
+      }
+      this.$nextTick(() => {
+        this.loadCurrentTabData()
+      })
     }
   },
   watch: {
     topicId: {
-      handler(newVal) {
-        if (newVal) {
+      handler(newVal, oldVal) {
+        // 只有当topicId真正变化且有效时才初始化
+        if (newVal && newVal !== oldVal && String(newVal) !== 'undefined') {
           this.init()
         }
       },
-      immediate: true
+      immediate: false // 不立即执行
     }
   }
 }

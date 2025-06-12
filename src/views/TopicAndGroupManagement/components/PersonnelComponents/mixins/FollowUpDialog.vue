@@ -8,7 +8,7 @@
     
     <div class="follow-up-dialog">
       <!-- 左侧：新增跟进内容 -->
-      <div class="left-section">
+      <div class="left-section" v-if="showLeftSection">
         <div class="section-title">新增跟进内容</div>
         
         <el-form :model="followUpForm" ref="followUpForm" :rules="rules" label-width="80px">
@@ -33,7 +33,7 @@
       </div>
       
       <!-- 右侧：历史跟进内容 -->
-      <div class="right-section">
+      <div class="right-section" :class="{ 'full-width': !showLeftSection }">
         <div class="section-title">历史跟进内容</div>
         
         <div class="history-list" v-loading="loading">
@@ -43,7 +43,7 @@
             :key="index">
             <div class="history-header">
               <span class="follow-time">跟进时间：{{ item.followTime }}</span>
-              <span class="follow-person">跟进人：{{ item.followPerson }}</span>
+              <span class="follow-person">跟进人：{{ item.followUserName }}</span>
             </div>
             <div class="history-content">
               <span class="content-label">跟进内容：</span>
@@ -62,6 +62,8 @@
 </template>
 
 <script>
+import { getAllHistoryFollowContent, addHistoryFollowContent } from '../../../api'
+
 export default {
   name: 'FollowUpDialog',
   data() {
@@ -69,9 +71,11 @@ export default {
       dialogVisible: false,
       loading: false,
       submitting: false,
+      showLeftSection: false, // 控制左侧是否显示
       
       // 患者信息
       patientInfo: null,
+      topicId: null,
       
       // 新增跟进表单
       followUpForm: {
@@ -92,13 +96,14 @@ export default {
   },
   methods: {
     // 打开对话框
-    open(patientData) {
+    open(patientData, topicId) {
       this.patientInfo = patientData
+      this.topicId = topicId
       this.dialogVisible = true
       
       // 设置当前登录用户为跟进人
       const userInfo = JSON.parse(sessionStorage.getItem('userInfo') || '{}')
-      this.followUpForm.followUpPerson = userInfo.userName || '王丽'
+      this.followUpForm.followUpPerson = userInfo.userName || ''
       
       // 加载历史跟进记录
       this.loadHistoryList()
@@ -116,6 +121,8 @@ export default {
         followUpPerson: '',
         content: ''
       }
+      this.showLeftSection = false
+      this.historyList = []
       this.$nextTick(() => {
         this.$refs.followUpForm && this.$refs.followUpForm.clearValidate()
       })
@@ -129,96 +136,75 @@ export default {
           
           // 构造提交数据
           const submitData = {
-            patientId: this.patientInfo?.id,
-            followUpPerson: this.followUpForm.followUpPerson,
             content: this.followUpForm.content,
-            followTime: new Date().toLocaleString('zh-CN', {
-              year: 'numeric',
-              month: '2-digit',
-              day: '2-digit',
-              hour: '2-digit',
-              minute: '2-digit',
-              second: '2-digit'
-            }).replace(/\//g, '-')
+            customerId: this.patientInfo.customerId,
+            topicCustomerId: this.patientInfo.topicCustomerId,
+            topicId: this.topicId
           }
           
           console.log('提交跟进记录:', submitData)
           
-          // 模拟API调用
-          setTimeout(() => {
-            this.$message.success('跟进记录添加成功')
-            
-            // 添加到历史记录列表顶部
-            this.historyList.unshift({
-              followTime: submitData.followTime,
-              followPerson: submitData.followUpPerson,
-              content: submitData.content
+          // 调用真实的API
+          addHistoryFollowContent(submitData)
+            .then(() => {
+              this.$message.success('跟进记录添加成功')
+              // 重新加载历史记录
+              this.loadHistoryList()
+              // 重置表单
+              this.followUpForm.content = ''
+              this.$refs.followUpForm.clearValidate()
             })
-            
-            // 重置表单
-            this.followUpForm.content = ''
-            this.$refs.followUpForm.clearValidate()
-            
-            this.submitting = false
-            
-            // 实际项目中这里应该调用真实的API
-            // addFollowUpRecord(submitData)
-            //   .then(() => {
-            //     this.$message.success('跟进记录添加成功')
-            //     this.loadHistoryList() // 重新加载历史记录
-            //     this.followUpForm.content = ''
-            //     this.$refs.followUpForm.clearValidate()
-            //   })
-            //   .catch(() => {
-            //     this.$message.error('跟进记录添加失败')
-            //   })
-            //   .finally(() => {
-            //     this.submitting = false
-            //   })
-          }, 1000)
+            .catch(() => {
+              this.$message.error('跟进记录添加失败')
+            })
+            .finally(() => {
+              this.submitting = false
+            })
         }
       })
     },
     
     // 加载历史跟进记录
     loadHistoryList() {
-      if (!this.patientInfo) return
+      if (!this.patientInfo || !this.topicId) return
       
       this.loading = true
       
-      console.log('加载跟进历史记录:', this.patientInfo)
+      const params = {
+        customerId: this.patientInfo.customerId,
+        topicCustomerId: this.patientInfo.topicCustomerId,
+        topicId: this.topicId
+      }
       
-      // 模拟API调用
-      setTimeout(() => {
-        // 模拟历史数据
-        this.historyList = [
-          {
-            followTime: '2025-2-13 14:23:23',
-            followPerson: '王丽',
-            content: '主动联系患者，确认患者情况，符合课题。后续协助患者填写报告'
-          },
-          {
-            followTime: '2025-2-12 13:22:32',
-            followPerson: '王丽',
-            content: '已经电话联系患者，患者目前在第一人民医院治疗，先不做审核，后续跟进进一步了解情况，根据患者报告决定'
+      console.log('加载跟进历史记录:', params)
+      
+      // 调用真实的API
+      getAllHistoryFollowContent(params)
+        .then(res => {
+          const userInfo = JSON.parse(sessionStorage.getItem('userInfo') || '{}')
+          
+          // 判断是否显示左侧：
+          // 1. 如果followUserId与当前用户ID一致，显示左侧
+          // 2. 如果followUserId为null（全新情况），也显示左侧
+          this.showLeftSection = res.followUserId === userInfo.userId || res.followUserId === null
+          
+          // 设置跟进人名字
+          if (this.showLeftSection) {
+            // 如果followUserName为null，使用sessionStorage中的userName
+            this.followUpForm.followUpPerson = res.followUserName || userInfo.userName || ''
           }
-        ]
-        
-        this.loading = false
-        
-        // 实际项目中这里应该调用真实的API
-        // getFollowUpHistory({ patientId: this.patientInfo.id })
-        //   .then(res => {
-        //     this.historyList = res || []
-        //   })
-        //   .catch(() => {
-        //     this.$message.error('加载跟进记录失败')
-        //     this.historyList = []
-        //   })
-        //   .finally(() => {
-        //     this.loading = false
-        //   })
-      }, 500)
+          
+          // 设置历史记录列表
+          this.historyList = res.historyFollowContentList || []
+        })
+        .catch(() => {
+          this.$message.error('加载跟进记录失败')
+          this.historyList = []
+          this.showLeftSection = false
+        })
+        .finally(() => {
+          this.loading = false
+        })
     }
   }
 }
@@ -244,6 +230,12 @@ export default {
   
   .right-section {
     padding-left: 20px;
+    
+    &.full-width {
+      padding-left: 0;
+      flex: none;
+      width: 100%;
+    }
   }
   
   .section-title {

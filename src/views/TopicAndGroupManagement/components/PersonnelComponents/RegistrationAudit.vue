@@ -241,8 +241,8 @@ export default {
 
     handleFollowUpRecord(row) {
       console.log('打开跟进记录:', row)
-      // 打开跟进记录对话框
-      this.$refs.FollowUpDialog.open(row)
+      // 打开跟进记录对话框，传递topicId参数
+      this.$refs.FollowUpDialog.open(row, this.topicId)
     },
 
     // 获取审核状态显示文本（API返回的状态）
@@ -267,14 +267,15 @@ export default {
   },
   watch: {
     topicId: {
-      handler(newVal) {
-        if (newVal) {
+      handler(newVal, oldVal) {
+        // 只有当 topicId 真正变化且有效时才重置数据
+        if (newVal && newVal !== oldVal && String(newVal) !== 'undefined' && String(newVal) !== '') {
           this.pagination.current = 1 // 切换课题时回到第一页
           this.searchForm.auditStatus = '' // 清空搜索条件
-          // 注意：这里不自动加载数据，等待父组件主动调用
+          // 注意：这里不自动加载数据，等待父组件主动调用loadData
         }
       },
-      immediate: false // 改为false，不立即执行
+      immediate: false // 不立即执行
     }
   }
 }

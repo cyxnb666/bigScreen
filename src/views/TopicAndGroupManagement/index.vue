@@ -161,7 +161,7 @@ export default {
         }
       ],
       tableSelected: [],
-      topicCode: '1',
+      topicCode: '',
       topicList: []
     }
   },
@@ -310,6 +310,15 @@ export default {
             // 如果有课题列表，选中第一个
             if (this.topicList.length > 0) {
               this.topicCode = this.topicList[0].topicId
+              
+              // 延迟初始化，确保组件已经渲染完成
+              this.$nextTick(() => {
+                if (this.$refs.PersonnelManagement) {
+                  // 直接调用初始化，不要调用resetToFirstTab避免重复
+                  this.$refs.PersonnelManagement.activeTab = 'approved'
+                  this.$refs.PersonnelManagement.init()
+                }
+              })
             }
           })
           .catch(() => {
@@ -349,7 +358,7 @@ export default {
       }
     }
   },
-  computed: {
+computed: {
     isDetailsDisabled() {
       if (!this.currentTopic) return false
       if (this.currentTopic.status === '1') return true
@@ -372,6 +381,21 @@ export default {
       } catch (err) {
         console.error('解析 OSS 配置失败:', err)
         return ''
+      }
+    }
+  },
+watch: {
+    // 监听课题代码变化，重置人员管理到第一个tab
+    topicCode: {
+      handler(newVal, oldVal) {
+        // 只有在课题真正切换时才重置，且当前在课题人员管理tab，且不是初始化时
+        if (newVal && oldVal && newVal !== oldVal && this.activeName === '2') {
+          this.$nextTick(() => {
+            if (this.$refs.PersonnelManagement) {
+              this.$refs.PersonnelManagement.resetToFirstTab()
+            }
+          })
+        }
       }
     }
   },
