@@ -238,24 +238,24 @@ export default {
       this.$refs.FollowUpDialog.open(row, this.topicId)
     },
 
-    // 获取审核状态显示文本（API返回的状态）
     getAuditStatusText(status) {
-      const statusMap = {
-        '4': '待审核',
-        '6': '审核通过',
-        '5': '审核不通过'
+      if (status === '1') {
+        return '待审核'
+      } else if (status === '2') {
+        return '审核不通过'
+      } else {
+        return '审核通过'
       }
-      return statusMap[status] || '未知状态'
     },
 
-    // 获取审核状态标签类型（API返回的状态）
     getAuditStatusType(status) {
-      const typeMap = {
-        '4': 'warning',
-        '6': 'success',
-        '5': 'danger'
+      if (status === '1') {
+        return 'warning'
+      } else if (status === '2') {
+        return 'danger'
+      } else {
+        return 'success'
       }
-      return typeMap[status] || 'info'
     }
   },
   watch: {

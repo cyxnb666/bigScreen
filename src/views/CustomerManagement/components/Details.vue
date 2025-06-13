@@ -11,7 +11,7 @@
           </div>
           <el-tabs v-if="type" v-model="activeTab" :stretch="true">
             <el-tab-pane label="基本信息" name="1"></el-tab-pane>
-            <el-tab-pane label="调查问卷" name="2" v-if="currentSurveyQuestion?.length"></el-tab-pane>
+            <el-tab-pane label="调查问卷" name="2" v-if="currentSurveyQuestion?.length && !details.hideQuestionnaire"></el-tab-pane>
             <el-tab-pane label="同意书" name="3" v-if="currentSignFileOssId"></el-tab-pane>
             <el-tab-pane label="上传报告" name="4" v-if="currentReportImages?.length"></el-tab-pane>
           </el-tabs>
@@ -461,7 +461,8 @@ export default {
         if (res) {
           this.details = {
             ...res.customerDetail,
-            topicId: row.topicId
+            topicId: row.topicId,
+            hideQuestionnaire: row.hideQuestionnaire
           }
           this.topicList = Array.isArray(res.topicDetail) ? res.topicDetail : []
           if (this.topicList.length > 0) {

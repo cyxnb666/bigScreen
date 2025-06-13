@@ -232,10 +232,9 @@ export default {
         })
     },
 
-    // 操作按钮方法
     handleDetail(row) {
-      // 向父组件传递详情点击事件
-      this.$emit('detail-click', row)
+      // 添加标识隐藏调查问卷tab
+      this.$emit('detail-click', { ...row, hideQuestionnaire: true })
     },
 
     handleFollowUpRecord(row) {
@@ -244,24 +243,24 @@ export default {
       this.$refs.FollowUpDialog.open(row, this.topicId)
     },
 
-    // 获取审核状态显示文本（API返回的状态）
     getAuditStatusText(status) {
-      const statusMap = {
-        '1': '待审核',
-        '6': '审核通过',
-        '2': '审核不通过'
+      if (status === '1') {
+        return '待审核'
+      } else if (status === '2') {
+        return '审核不通过'
+      } else {
+        return '审核通过'
       }
-      return statusMap[status] || '未知状态'
     },
 
-    // 获取审核状态标签类型（API返回的状态）
     getAuditStatusType(status) {
-      const typeMap = {
-        '1': 'warning',
-        '6': 'success',
-        '2': 'danger'
+      if (status === '1') {
+        return 'warning'
+      } else if (status === '2') {
+        return 'danger'
+      } else {
+        return 'success'
       }
-      return typeMap[status] || 'info'
     }
   },
   watch: {
