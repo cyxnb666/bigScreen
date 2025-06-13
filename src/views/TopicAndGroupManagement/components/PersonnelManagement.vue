@@ -2,14 +2,10 @@
   <div class="PersonnelManagement">
     <el-tabs v-model="activeTab" @tab-click="handleTabClick">
       <el-tab-pane name="approved">
-        <span slot="label">
-          <el-badge :value="badgeCounts.approved" :hidden="badgeCounts.approved === 0">
-            审核通过患者列表
-          </el-badge>
-        </span>
+        <span slot="label">审核通过患者列表</span>
         <div class="tab-content">
-          <ApprovedPatients ref="approvedPatients" :topicId="topicId" :topicInfo="topicInfo" @updateBadge="updateApprovedBadge"
-            @detail-click="handleDetailClick" />
+          <ApprovedPatients ref="approvedPatients" :topicId="topicId" :topicInfo="topicInfo"
+            @updateAllBadges="updateAllBadges" @detail-click="handleDetailClick" />
         </div>
       </el-tab-pane>
 
@@ -21,7 +17,7 @@
         </span>
         <div class="tab-content">
           <SurveyAudit ref="surveyAudit" :topicId="topicId" @updateBadge="updateSurveyBadge"
-            @detail-click="handleDetailClick" />
+            @updateAllBadges="updateAllBadges" @detail-click="handleDetailClick" />
         </div>
       </el-tab-pane>
 
@@ -33,7 +29,7 @@
         </span>
         <div class="tab-content">
           <RegistrationAudit ref="registrationAudit" :topicId="topicId" @updateBadge="updateRegistrationBadge"
-            @detail-click="handleDetailClick" />
+            @updateAllBadges="updateAllBadges" @detail-click="handleDetailClick" />
         </div>
       </el-tab-pane>
     </el-tabs>
@@ -65,9 +61,7 @@ export default {
   data() {
     return {
       activeTab: 'approved',
-      // Badge数字显示
       badgeCounts: {
-        approved: 0,    // 审核通过患者数量
         survey: 0,      // 待审核调查问卷数量
         registration: 0 // 待审核报名数量
       }
@@ -91,9 +85,11 @@ export default {
       this.$emit('detail-click', row)
     },
 
-    // 更新badge数量的方法
-    updateApprovedBadge(count) {
-      this.badgeCounts.approved = count
+    updateAllBadges(extendData) {
+      if (extendData) {
+        this.badgeCounts.registration = extendData.applyAuditAmount || 0
+        this.badgeCounts.survey = extendData.questionnaireAuditAmount || 0
+      }
     },
 
     updateSurveyBadge(count) {
@@ -108,19 +104,18 @@ export default {
     init() {
       // 清空badge数字，等待子组件加载完成后更新
       this.badgeCounts = {
-        approved: 0,
         survey: 0,
         registration: 0
       }
-      
+
       // 只加载当前激活tab的数据，避免重复调用
       this.loadCurrentTabData()
     },
-    
+
     // 加载当前激活tab的数据
     loadCurrentTabData() {
       if (!this.topicId) return // 如果topicId无效，不加载数据
-      
+
       if (this.activeTab === 'approved') {
         this.$refs.approvedPatients && this.$refs.approvedPatients.loadData()
       } else if (this.activeTab === 'survey') {
@@ -129,13 +124,12 @@ export default {
         this.$refs.registrationAudit && this.$refs.registrationAudit.loadData()
       }
     },
-    
+
     // 重置到第一个tab并加载数据
     resetToFirstTab() {
       this.activeTab = 'approved'
       // 清空badge数字
       this.badgeCounts = {
-        approved: 0,
         survey: 0,
         registration: 0
       }
@@ -144,28 +138,28 @@ export default {
       })
     }
   },
-watch: {
-  topicId: {
-    handler(newVal, oldVal) {
-      // 只有当topicId真正变化且有效时才初始化
-      if (newVal && newVal !== oldVal && String(newVal) !== 'undefined') {
-        // 重置到第一个tab
-        this.activeTab = 'approved'
-        // 清空badge数字
-        this.badgeCounts = {
-          approved: 0,
-          survey: 0,
-          registration: 0
+  watch: {
+    topicId: {
+      handler(newVal, oldVal) {
+        // 只有当topicId真正变化且有效时才初始化
+        if (newVal && newVal !== oldVal && String(newVal) !== 'undefined') {
+          // 重置到第一个tab
+          this.activeTab = 'approved'
+          // 清空badge数字
+          this.badgeCounts = {
+            approved: 0,
+            survey: 0,
+            registration: 0
+          }
+          // 延迟初始化，确保组件状态已更新
+          this.$nextTick(() => {
+            this.loadCurrentTabData()
+          })
         }
-        // 延迟初始化，确保组件状态已更新
-        this.$nextTick(() => {
-          this.loadCurrentTabData()
-        })
-      }
-    },
-    immediate: false
+      },
+      immediate: false
+    }
   }
-}
 }
 </script>
 

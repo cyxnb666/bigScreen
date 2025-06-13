@@ -49,7 +49,7 @@
 
     <!-- 跟进记录对话框 -->
     <FollowUpDialog ref="FollowUpDialog" />
-    
+
     <!-- 变更跟进人对话框 -->
     <ChangeSuperintendentDialog ref="ChangeSuperintendentDialog" @change-success="handleChangeSuccess" />
   </div>
@@ -120,17 +120,14 @@ export default {
         .then(res => {
           this.tableData = res.items || []
           this.pagination.total = res.totalSize || 0
-
-          // 更新统计信息 - 使用总数量而不是当前页数量
           this.recruitmentStats = {
             totalCount: this.topicInfo?.recruitCount || 0,
-            recruitedCount: this.pagination.total, // 使用总数量
+            recruitedCount: this.pagination.total,
             remainingCount: Math.max(0, (this.topicInfo?.recruitCount || 0) - this.pagination.total)
           }
-
-          // 通知父组件更新badge数量 - 使用extendData.auditAmount
-          this.$emit('updateBadge', res.extendData?.auditAmount || 0)
+          this.$emit('updateAllBadges', res.extendData)
         })
+
         .catch(() => {
           this.$message.error('获取审核通过患者列表失败')
           this.tableData = []
@@ -189,21 +186,20 @@ export default {
       this.loadData()
     }
   },
-watch: {
-  topicId: {
-    handler(newVal, oldVal) {
-      // 只重置状态，不自动加载数据
-      if (newVal && newVal !== oldVal && String(newVal) !== 'undefined' && String(newVal) !== '') {
-        this.pagination.current = 1
-        this.searchForm.auditStatus = ''
-        this.tableData = []
-        this.pagination.total = 0
-        // 移除 this.loadData() 调用
-      }
-    },
-    immediate: false
+  watch: {
+    topicId: {
+      handler(newVal, oldVal) {
+        // 只重置状态，不自动加载数据
+        if (newVal && newVal !== oldVal && String(newVal) !== 'undefined' && String(newVal) !== '') {
+          this.pagination.current = 1
+          this.searchForm.auditStatus = ''
+          this.tableData = []
+          this.pagination.total = 0
+        }
+      },
+      immediate: false
+    }
   }
-}
 }
 </script>
 

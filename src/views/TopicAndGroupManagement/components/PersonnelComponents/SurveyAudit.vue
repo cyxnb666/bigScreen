@@ -135,9 +135,8 @@ export default {
         .then(res => {
           this.tableData = res.items || []
           this.pagination.total = res.totalSize || 0
-
-          // 通知父组件更新badge数量 - 使用extendData.auditAmount
-          this.$emit('updateBadge', res.extendData?.auditAmount || 0)
+          this.$emit('updateBadge', res.extendData?.questionnaireAuditAmount || 0)
+          this.$emit('updateAllBadges', res.extendData)
         })
         .catch(() => {
           this.$message.error('获取调查问卷审核列表失败')
@@ -259,21 +258,21 @@ export default {
       return typeMap[status] || 'info'
     }
   },
-watch: {
-  topicId: {
-    handler(newVal, oldVal) {
-      // 只重置状态，不自动加载数据
-      if (newVal && newVal !== oldVal && String(newVal) !== 'undefined' && String(newVal) !== '') {
-        this.pagination.current = 1
-        this.searchForm.auditStatus = ''
-        this.tableData = []
-        this.pagination.total = 0
-        // 移除 this.loadData() 调用
-      }
-    },
-    immediate: false
+  watch: {
+    topicId: {
+      handler(newVal, oldVal) {
+        // 只重置状态，不自动加载数据
+        if (newVal && newVal !== oldVal && String(newVal) !== 'undefined' && String(newVal) !== '') {
+          this.pagination.current = 1
+          this.searchForm.auditStatus = ''
+          this.tableData = []
+          this.pagination.total = 0
+          // 移除 this.loadData() 调用
+        }
+      },
+      immediate: false
+    }
   }
-}
 }
 </script>
 

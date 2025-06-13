@@ -189,25 +189,6 @@ export default {
           this.loading = false
         })
     },
-    getTopicPrincipalList() {
-      getTopicPrincipal()
-        .then(res => {
-          // 将返回的字符串数组转换为选择框需要的格式
-          const options = (res || []).map(name => ({
-            label: name,
-            value: name // 使用姓名作为value值
-          }))
-
-          // 找到课题负责人的查询选项并更新
-          const topicLeaderQuery = this.queryList.find(item => item.prop === 'topicLeader')
-          if (topicLeaderQuery) {
-            topicLeaderQuery.options = options
-          }
-        })
-        .catch(() => {
-          this.$message.error('获取课题负责人列表失败')
-        })
-    },
     edit(row) {
       console.log(row)
       this.$refs.TopicAddOrEdit.initialization('edit', row)
@@ -266,10 +247,19 @@ export default {
     getTopicLeaderOptions() {
       getTopicLeaders()
         .then(res => {
-          this.topicLeaderOptions = (res || []).map(name => ({
+          const options = (res || []).map(name => ({
             label: name.userName,
-            value: name.userId // 使用姓名作为value值
+            value: name.userId
           }))
+
+          // 用于新增/编辑弹窗
+          this.topicLeaderOptions = options
+
+          // 用于查询条件下拉框
+          const topicLeaderQuery = this.queryList.find(item => item.prop === 'topicLeader')
+          if (topicLeaderQuery) {
+            topicLeaderQuery.options = options
+          }
         })
         .catch(() => {
           this.$message.error('获取课题负责人列表失败')
@@ -310,7 +300,7 @@ export default {
             // 如果有课题列表，选中第一个
             if (this.topicList.length > 0) {
               this.topicCode = this.topicList[0].topicId
-              
+
               // 延迟初始化，确保组件已经渲染完成
               this.$nextTick(() => {
                 if (this.$refs.PersonnelManagement) {
@@ -358,7 +348,7 @@ export default {
       }
     }
   },
-computed: {
+  computed: {
     isDetailsDisabled() {
       if (!this.currentTopic) return false
       if (this.currentTopic.status === '1') return true
@@ -384,11 +374,10 @@ computed: {
       }
     }
   },
-watch: {
+  watch: {
   },
   created() {
     this.onSearch()
-    // this.getTopicPrincipalList()
     this.getTopicTypeOptions()
     this.getTopicLeaderOptions()
   },
